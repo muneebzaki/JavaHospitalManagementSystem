@@ -4,13 +4,26 @@ import dao.BillDAO;
 import dao.IBillDAO;
 import entities.Bill;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.sql.Date;
 import java.util.List;
 
 public class BillManager implements IBillManager {
+    // TODO: implement a new connection manager class to handle db connection
+    Connection conn;
+    private final IBillDAO billDAO; // DAO handles database queries
 
-    private final IBillDAO billDAO = new BillDAO(); // DAO handles database queries
+    public BillManager() throws SQLException {
+        conn = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/yourDatabaseName",
+                "yourUsername",
+                "yourPassword"
+        );
+        billDAO = new BillDAO(conn);
+    }
 
     // Core Billing Operations
     @Override
