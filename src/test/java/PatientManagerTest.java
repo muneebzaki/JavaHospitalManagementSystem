@@ -1,5 +1,3 @@
-package hospital;
-
 import entities.Patient;
 import controller.PatientManager;
 import org.junit.jupiter.api.BeforeEach;

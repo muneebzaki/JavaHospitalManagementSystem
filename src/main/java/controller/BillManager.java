@@ -25,6 +25,12 @@ public class BillManager implements IBillManager {
         billDAO = new BillDAO(conn);
     }
 
+    // Added new constructor for testing
+    public BillManager(IBillDAO billDAO) {
+        this.billDAO = billDAO;
+        // Note: conn is not needed when DAO is injected
+    }
+
     // Core Billing Operations
     @Override
     public boolean generateBill(int patientId, String paymentStatus, String paymentType) {
