@@ -8,6 +8,7 @@ import java.awt.*;
 
 public class MainMenuPanel extends BasePanel {
     private JButton billsButton;
+    private JButton patientsButton;
     private JLabel welcomeLabel;
     private JPanel buttonPanel;
 
@@ -23,6 +24,9 @@ public class MainMenuPanel extends BasePanel {
         
         billsButton = new JButton("Billing Management");
         billsButton.setPreferredSize(new Dimension(200, 40));
+
+        patientsButton = new JButton("Patient Management");
+        patientsButton.setPreferredSize(new Dimension(200, 40));
         
         buttonPanel = new JPanel();
     }
@@ -42,6 +46,8 @@ public class MainMenuPanel extends BasePanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         
         buttonPanel.add(billsButton, gbc);
+        gbc.gridy += 1;
+        buttonPanel.add(patientsButton, gbc);
         
         // Center the button panel
         add(buttonPanel, BorderLayout.CENTER);

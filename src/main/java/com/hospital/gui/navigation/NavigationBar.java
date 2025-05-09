@@ -36,6 +36,6 @@ public class NavigationBar extends JPanel {
     
     private void setupListeners() {
         homeButton.addActionListener(e -> mainFrame.switchScreen("MAIN_MENU"));
-        backButton.addActionListener(e -> mainFrame.switchScreen("MAIN_MENU")); // You can modify this for actual back functionality
+        backButton.addActionListener(e -> mainFrame.switchScreen("MAIN_MENU"));
     }
 }

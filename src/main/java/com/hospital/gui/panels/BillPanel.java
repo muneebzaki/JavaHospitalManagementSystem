@@ -166,7 +166,7 @@ public class BillPanel extends BasePanel {
             private void search() {
                 String searchText = searchField.getText();
                 String status = (String) statusFilter.getSelectedItem();
-                billController.filterBills(searchText, status, new Date(startDateFilter.getText()), new Date(endDateFilter.getText()));
+                billController.filterBills(searchText, status, startDate, endDate);
             }
 
             @Override
@@ -204,6 +204,7 @@ public class BillPanel extends BasePanel {
         resetFilter.addActionListener(e -> {
             startDate = null;
             endDate = null;
+            searchField.setText("");
             String searchText = searchField.getText();
             statusFilter.setSelectedIndex(0);
             String status = (String) statusFilter.getSelectedItem();
