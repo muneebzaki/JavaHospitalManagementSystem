@@ -4,12 +4,16 @@ import dao.AppointmentDAO;
 import dao.IAppointmentDAO;
 import entities.Appointment;
 import entities.Doctor;
+import entities.Patient;
+import entities.Appointment.AppointmentStatus;
+import entities.Appointment.AppointmentType;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +22,8 @@ public class AppointmentManager implements IAppointmentManager {
     private final Connection conn;
     private final IAppointmentDAO appointmentDAO;
     private final DoctorManager doctorManager;
+    private final PatientManager patientManager;
+    private final BillManager billManager;
 
     public AppointmentManager() throws SQLException {
         conn = DriverManager.getConnection(
@@ -27,21 +33,39 @@ public class AppointmentManager implements IAppointmentManager {
         );
         appointmentDAO = new AppointmentDAO(conn);
         doctorManager = new DoctorManager();
+        patientManager = new PatientManager();
+        billManager = new BillManager();
     }
 
     @Override
     public boolean scheduleAppointment(int patientId, int doctorId, LocalDateTime dateTime, 
                                      String type, String notes, double cost) {
+        // Validate inputs
+        if (!validateAppointmentInputs(patientId, doctorId, dateTime, type)) {
+            return false;
+        }
+
+        // Check doctor and patient availability
         if (!isDoctorAvailable(doctorId, dateTime) || !isPatientAvailable(patientId, dateTime)) {
             return false;
         }
 
-        Appointment appointment = new Appointment(patientId, doctorId, dateTime, type, notes, cost);
+        // Set default duration based on appointment type
+        Duration duration = getDefaultDuration(type);
+
+        // Create and validate appointment
+        Appointment appointment = new Appointment(patientId, doctorId, dateTime, duration, type, notes, cost);
         if (!validateAppointment(appointment)) {
             return false;
         }
 
-        return appointmentDAO.insertAppointment(appointment);
+        // Schedule the appointment
+        boolean success = appointmentDAO.insertAppointment(appointment);
+        if (success) {
+            // Update doctor's schedule
+            doctorManager.scheduleDoctorAppointment(doctorId, dateTime);
+        }
+        return success;
     }
 
     @Override
@@ -51,8 +75,17 @@ public class AppointmentManager implements IAppointmentManager {
         }
 
         Appointment existingAppointment = getAppointmentById(appointmentId);
-        if (existingAppointment.getStatus().equals("COMPLETED") || 
-            existingAppointment.getStatus().equals("CANCELLED")) {
+        if (existingAppointment.isCompleted() || existingAppointment.isCancelled()) {
+            return false;
+        }
+
+        // Validate the new appointment
+        if (!validateAppointment(newAppointment)) {
+            return false;
+        }
+
+        // Check for scheduling conflicts
+        if (isSchedulingConflict(newAppointment)) {
             return false;
         }
 
@@ -66,12 +99,16 @@ public class AppointmentManager implements IAppointmentManager {
         }
 
         Appointment appointment = getAppointmentById(appointmentId);
-        if (appointment.getStatus().equals("COMPLETED") || 
-            appointment.getStatus().equals("CANCELLED")) {
+        if (appointment.isCompleted() || appointment.isCancelled()) {
             return false;
         }
 
-        return appointmentDAO.updateStatus(appointmentId, "CANCELLED");
+        boolean success = appointmentDAO.updateStatus(appointmentId, AppointmentStatus.CANCELLED.name());
+        if (success) {
+            // Update doctor's schedule
+            doctorManager.cancelDoctorAppointment(appointment.getDoctorId(), appointment.getAppointmentDateTime());
+        }
+        return success;
     }
 
     @Override
@@ -81,11 +118,16 @@ public class AppointmentManager implements IAppointmentManager {
         }
 
         Appointment appointment = getAppointmentById(appointmentId);
-        if (!appointment.getStatus().equals("SCHEDULED")) {
+        if (!appointment.isScheduled()) {
             return false;
         }
 
-        return appointmentDAO.updateStatus(appointmentId, "COMPLETED");
+        boolean success = appointmentDAO.updateStatus(appointmentId, AppointmentStatus.COMPLETED.name());
+        if (success) {
+            // Generate bill for the completed appointment
+            billManager.generateBill(appointment.getPatientId(), "PENDING", "APPOINTMENT");
+        }
+        return success;
     }
 
     @Override
@@ -95,11 +137,11 @@ public class AppointmentManager implements IAppointmentManager {
         }
 
         Appointment appointment = getAppointmentById(appointmentId);
-        if (!appointment.getStatus().equals("SCHEDULED")) {
+        if (!appointment.isScheduled()) {
             return false;
         }
 
-        return appointmentDAO.updateStatus(appointmentId, "NO_SHOW");
+        return appointmentDAO.updateStatus(appointmentId, AppointmentStatus.NO_SHOW.name());
     }
 
     @Override
@@ -124,16 +166,29 @@ public class AppointmentManager implements IAppointmentManager {
 
     @Override
     public List<Appointment> getAppointmentsByStatus(String status) {
-        return appointmentDAO.findByStatus(status);
+        try {
+            AppointmentStatus.valueOf(status.toUpperCase());
+            return appointmentDAO.findByStatus(status);
+        } catch (IllegalArgumentException e) {
+            return new ArrayList<>();
+        }
     }
 
     @Override
     public List<Appointment> getAppointmentsByType(String type) {
-        return appointmentDAO.findByType(type);
+        try {
+            AppointmentType.valueOf(type.toUpperCase());
+            return appointmentDAO.findByType(type);
+        } catch (IllegalArgumentException e) {
+            return new ArrayList<>();
+        }
     }
 
     @Override
     public List<Appointment> getAppointmentsBetweenDates(LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate == null || endDate == null || startDate.isAfter(endDate)) {
+            return new ArrayList<>();
+        }
         return appointmentDAO.findBetweenDates(startDate, endDate);
     }
 
@@ -142,8 +197,8 @@ public class AppointmentManager implements IAppointmentManager {
         List<Appointment> doctorAppointments = getAppointmentsByDoctorId(doctorId);
         return doctorAppointments.stream()
                 .noneMatch(appointment -> 
-                    appointment.getAppointmentDateTime().equals(dateTime) &&
-                    !appointment.getStatus().equals("CANCELLED"));
+                    appointment.isOverlapping(new Appointment(0, 0, doctorId, dateTime, 
+                        Duration.ofMinutes(30), AppointmentType.REGULAR.name(), "", 0.0)));
     }
 
     @Override
@@ -151,8 +206,8 @@ public class AppointmentManager implements IAppointmentManager {
         List<Appointment> patientAppointments = getAppointmentsByPatientId(patientId);
         return patientAppointments.stream()
                 .noneMatch(appointment -> 
-                    appointment.getAppointmentDateTime().equals(dateTime) &&
-                    !appointment.getStatus().equals("CANCELLED"));
+                    appointment.isOverlapping(new Appointment(0, patientId, 0, dateTime, 
+                        Duration.ofMinutes(30), AppointmentType.REGULAR.name(), "", 0.0)));
     }
 
     @Override
@@ -183,6 +238,7 @@ public class AppointmentManager implements IAppointmentManager {
         if (appointment.getDoctorId() <= 0) return false;
         if (appointment.getAppointmentDateTime() == null) return false;
         if (appointment.getAppointmentDateTime().isBefore(LocalDateTime.now())) return false;
+        if (appointment.getDuration() == null || appointment.getDuration().isNegative() || appointment.getDuration().isZero()) return false;
         if (appointment.getType() == null || appointment.getType().isEmpty()) return false;
         if (appointment.getCost() < 0) return false;
         return true;
@@ -199,5 +255,37 @@ public class AppointmentManager implements IAppointmentManager {
 
         // Add cost based on duration (in minutes)
         return baseCost + (duration / 30.0 * 50.0);
+    }
+
+    // Private helper methods
+    private boolean validateAppointmentInputs(int patientId, int doctorId, LocalDateTime dateTime, String type) {
+        if (patientId <= 0 || doctorId <= 0 || dateTime == null || type == null) {
+            return false;
+        }
+
+        try {
+            AppointmentType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private Duration getDefaultDuration(String type) {
+        return switch (type.toUpperCase()) {
+            case "REGULAR" -> Duration.ofMinutes(30);
+            case "URGENT" -> Duration.ofMinutes(60);
+            case "FOLLOW_UP" -> Duration.ofMinutes(20);
+            default -> Duration.ofMinutes(30);
+        };
+    }
+
+    private boolean isSchedulingConflict(Appointment appointment) {
+        List<Appointment> doctorAppointments = getAppointmentsByDoctorId(appointment.getDoctorId());
+        List<Appointment> patientAppointments = getAppointmentsByPatientId(appointment.getPatientId());
+
+        return doctorAppointments.stream().anyMatch(a -> a.isOverlapping(appointment)) ||
+               patientAppointments.stream().anyMatch(a -> a.isOverlapping(appointment));
     }
 } 
