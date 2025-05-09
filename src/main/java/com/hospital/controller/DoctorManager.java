@@ -1,99 +1,75 @@
 package com.hospital.controller;
 
+import com.hospital.dao.IDoctorDAO;
+import com.hospital.dao.DoctorDAO;
 import com.hospital.entities.Doctor;
-import com.hospital.entities.Nurse;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class DoctorManager {
-    private List<Doctor> doctors;
-    private List<Nurse> nurses;
+    private final IDoctorDAO doctorDAO;
 
     public DoctorManager() {
-        this.doctors = new ArrayList<>();
-        this.nurses = new ArrayList<>();
+        this.doctorDAO = new DoctorDAO();
     }
 
-    public void addDoctor(Doctor doctor) {
-        doctors.add(doctor);
+    public boolean addDoctor(Doctor doctor) {
+        return doctorDAO.insertDoctor(doctor);
     }
 
-    public void addNurse(Nurse nurse) {
-        nurses.add(nurse);
+    public boolean updateDoctor(Doctor doctor) {
+        return doctorDAO.updateDoctor(doctor);
     }
 
-    public List<Doctor> getAvailableDoctors(LocalDateTime time) {
-        return doctors.stream()
-                .filter(doctor -> doctor.isAvailable() && !doctor.hasAppointmentAt(time))
-                .collect(Collectors.toList());
+    public boolean removeDoctor(int id) {
+        return doctorDAO.deleteDoctor(id);
     }
 
-    public List<Nurse> getAvailableNurses(LocalDateTime time) {
-        return nurses.stream()
-                .filter(nurse -> nurse.isAvailable() && !nurse.hasShiftAt(time))
-                .collect(Collectors.toList());
+    public Doctor findDoctorById(int id) {
+        return doctorDAO.findById(id);
+    }
+
+    public List<Doctor> getAllDoctors() {
+        return doctorDAO.findAll();
+    }
+
+    public List<Doctor> getDoctorsBySpecialization(String specialization) {
+        return doctorDAO.findBySpecialization(specialization);
+    }
+
+    public List<Doctor> getAvailableDoctors() {
+        return doctorDAO.findAvailable();
+    }
+
+    public boolean doctorExists(int id) {
+        return findDoctorById(id) != null;
     }
 
     public boolean scheduleDoctorAppointment(int doctorId, LocalDateTime appointmentTime) {
-        Doctor doctor = doctors.stream()
-                .filter(d -> d.getId() == doctorId)
-                .findFirst()
-                .orElse(null);
-
+        Doctor doctor = findDoctorById(doctorId);
         if (doctor != null && doctor.isAvailable() && !doctor.hasAppointmentAt(appointmentTime)) {
             doctor.addToSchedule(appointmentTime);
-            return true;
-        }
-        return false;
-    }
-
-    public boolean scheduleNurseShift(int nurseId, LocalDateTime shiftTime) {
-        Nurse nurse = nurses.stream()
-                .filter(n -> n.getId() == nurseId)
-                .findFirst()
-                .orElse(null);
-
-        if (nurse != null && nurse.isAvailable() && !nurse.hasShiftAt(shiftTime)) {
-            nurse.addToSchedule(shiftTime);
-            return true;
+            return updateDoctor(doctor);
         }
         return false;
     }
 
     public boolean cancelDoctorAppointment(int doctorId, LocalDateTime appointmentTime) {
-        Doctor doctor = doctors.stream()
-                .filter(d -> d.getId() == doctorId)
-                .findFirst()
-                .orElse(null);
-
+        Doctor doctor = findDoctorById(doctorId);
         if (doctor != null && doctor.hasAppointmentAt(appointmentTime)) {
             doctor.removeFromSchedule(appointmentTime);
-            return true;
+            return updateDoctor(doctor);
         }
         return false;
     }
 
-    public boolean cancelNurseShift(int nurseId, LocalDateTime shiftTime) {
-        Nurse nurse = nurses.stream()
-                .filter(n -> n.getId() == nurseId)
-                .findFirst()
-                .orElse(null);
-
-        if (nurse != null && nurse.hasShiftAt(shiftTime)) {
-            nurse.removeFromSchedule(shiftTime);
-            return true;
+    public void listAllDoctors() {
+        List<Doctor> all = getAllDoctors();
+        if (all.isEmpty()) {
+            System.out.println("No doctors found.");
+        } else {
+            all.forEach(System.out::println);
         }
-        return false;
-    }
-
-    public List<Doctor> getDoctors() {
-        return new ArrayList<>(doctors);
-    }
-
-    public List<Nurse> getNurses() {
-        return new ArrayList<>(nurses);
     }
 } 
