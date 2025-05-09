@@ -61,6 +61,14 @@ public class Nurse {
                 .anyMatch(scheduledTime -> scheduledTime.equals(time));
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
     @Override
     public String toString() {
         return "Nurse{" +

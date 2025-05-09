@@ -1,69 +1,130 @@
 package com.hospital.gui;
 
-
-import com.hospital.Main;
-import com.hospital.dao.UserDAO;
+import com.hospital.controller.UserManager;
+import com.hospital.entities.User;
 
 import javax.swing.*;
 import java.awt.*;
-import java.sql.*;
-
-import static com.hospital.util.DBConnection.getConnection;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class LoginFrame extends JFrame {
-    private final JTextField usernameField;
+    private final UserManager userManager;
+    private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
-    private JLabel errorLabel;
+    private JButton registerButton;
 
     public LoginFrame() {
-        setTitle("Login - Hospital Management System");
-        setSize(350, 200);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        this.userManager = new UserManager();
+        initializeComponents();
+        setupLayout();
+        setupListeners();
+    }
+
+    private void initializeComponents() {
+        setTitle("Hospital Management System - Login");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(400, 300);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
 
-        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
-        panel.add(new JLabel("Username:"));
-        usernameField = new JTextField();
-        panel.add(usernameField);
-
-        panel.add(new JLabel("Password:"));
-        passwordField = new JPasswordField();
-        panel.add(passwordField);
-
+        usernameField = new JTextField(20);
+        passwordField = new JPasswordField(20);
         loginButton = new JButton("Login");
-        panel.add(new JLabel()); // empty cell
-        panel.add(loginButton);
-
-        add(panel, BorderLayout.CENTER);
-
-        errorLabel = new JLabel("", SwingConstants.CENTER);
-        errorLabel.setForeground(Color.RED);
-        add(errorLabel, BorderLayout.SOUTH);
-
-        loginButton.addActionListener(e -> handleLogin());
-
-        setVisible(true);
+        registerButton = new JButton("Register");
     }
 
-    private void handleLogin() {
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
+    private void setupLayout() {
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
 
-        if (validateLogin(username, password)) {
-            dispose(); // close login window
-            Main.main(null); // launch main GUI
-        } else {
-            errorLabel.setText("Invalid credentials. Please try again.");
-        }
+        // Username
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        mainPanel.add(new JLabel("Username:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        mainPanel.add(usernameField, gbc);
+
+        // Password
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        mainPanel.add(new JLabel("Password:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        mainPanel.add(passwordField, gbc);
+
+        // Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.add(loginButton);
+        buttonPanel.add(registerButton);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        mainPanel.add(buttonPanel, gbc);
+
+        add(mainPanel);
     }
 
-    private boolean validateLogin(String username, String password) {
-        UserDAO userDAO = new UserDAO();
-        return userDAO.isValidUser(username, password);
+    private void setupListeners() {
+        loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+
+                if (username.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(LoginFrame.this,
+                            "Please enter both username and password",
+                            "Login Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                User user = userManager.login(username, password);
+                if (user != null) {
+                    openDashboard(user);
+                } else {
+                    JOptionPane.showMessageDialog(LoginFrame.this,
+                            "Invalid username or password",
+                            "Login Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        registerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openRegistrationFrame();
+            }
+        });
     }
 
+    private void openDashboard(User user) {
+        SwingUtilities.invokeLater(() -> {
+            DashboardFrame dashboard = new DashboardFrame(user);
+            dashboard.setVisible(true);
+            this.dispose();
+        });
+    }
+
+    private void openRegistrationFrame() {
+        SwingUtilities.invokeLater(() -> {
+            RegistrationFrame registration = new RegistrationFrame();
+            registration.setVisible(true);
+            this.dispose();
+        });
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            LoginFrame loginFrame = new LoginFrame();
+            loginFrame.setVisible(true);
+        });
+    }
 }
