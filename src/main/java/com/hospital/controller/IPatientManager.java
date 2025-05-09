@@ -1,4 +1,4 @@
-package controller;
+package com.hospital.controller;
 
 public interface IPatientManager {
 }

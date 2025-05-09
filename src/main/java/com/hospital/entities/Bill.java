@@ -1,4 +1,4 @@
-package entities;
+package com.hospital.entities;
 
 import java.sql.Date;
 
@@ -11,7 +11,7 @@ public class Bill {
     private String payment_type;
 
     // Constructor for existing Bill
-    public Bill(int patientId, double total_amount, int billId, Date billing_date, String payment_status, String payment_type) {
+    public Bill(int billId, int patientId, double total_amount, Date billing_date, String payment_status, String payment_type) {
         this.patientId = patientId;
         this.total_amount = total_amount;
         this.billId = billId;

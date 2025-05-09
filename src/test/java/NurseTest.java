@@ -1,4 +1,4 @@
-import entities.Nurse;
+import com.hospital.entities.Nurse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;

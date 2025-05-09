@@ -1,6 +1,6 @@
-package controller;
+package com.hospital.controller;
 
-import entities.Appointment;
+import com.hospital.entities.Appointment;
 import java.time.LocalDateTime;
 import java.util.List;
 

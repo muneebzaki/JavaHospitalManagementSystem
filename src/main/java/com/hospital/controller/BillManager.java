@@ -1,8 +1,8 @@
-package controller;
+package com.hospital.controller;
 
-import dao.BillDAO;
-import dao.IBillDAO;
-import entities.Bill;
+import com.hospital.dao.BillDAO;
+import com.hospital.dao.IBillDAO;
+import com.hospital.entities.Bill;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

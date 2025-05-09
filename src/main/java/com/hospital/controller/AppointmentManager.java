@@ -1,9 +1,8 @@
-package controller;
+package com.hospital.controller;
 
-import dao.AppointmentDAO;
-import dao.IAppointmentDAO;
-import entities.Appointment;
-import entities.Doctor;
+import com.hospital.dao.AppointmentDAO;
+import com.hospital.dao.IAppointmentDAO;
+import com.hospital.entities.Appointment;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,7 +11,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AppointmentManager implements IAppointmentManager {
     private final Connection conn;

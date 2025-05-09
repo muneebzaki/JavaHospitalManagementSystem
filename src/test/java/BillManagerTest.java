@@ -1,6 +1,6 @@
-import controller.BillManager;
-import dao.IBillDAO;
-import entities.Bill;
+import com.hospital.controller.BillManager;
+import com.hospital.dao.IBillDAO;
+import com.hospital.entities.Bill;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

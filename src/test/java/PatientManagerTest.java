@@ -1,5 +1,5 @@
-import entities.Patient;
-import controller.PatientManager;
+import com.hospital.entities.Patient;
+import com.hospital.controller.PatientManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;

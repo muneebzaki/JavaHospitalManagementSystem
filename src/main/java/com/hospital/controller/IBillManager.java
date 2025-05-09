@@ -1,8 +1,7 @@
-package controller;
+package com.hospital.controller;
 
-import entities.Bill;
+import com.hospital.entities.Bill;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 

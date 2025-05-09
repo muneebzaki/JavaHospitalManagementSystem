@@ -1,7 +1,7 @@
-package controller;
+package com.hospital.controller;
 
-import entities.Doctor;
-import entities.Nurse;
+import com.hospital.entities.Doctor;
+import com.hospital.entities.Nurse;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

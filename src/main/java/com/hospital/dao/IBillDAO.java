@@ -1,6 +1,6 @@
-package dao;
+package com.hospital.dao;
 
-import entities.Bill;
+import com.hospital.entities.Bill;
 
 import java.util.List;
 

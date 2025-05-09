@@ -1,6 +1,6 @@
-package dao;
+package com.hospital.dao;
 
-import entities.Appointment;
+import com.hospital.entities.Appointment;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

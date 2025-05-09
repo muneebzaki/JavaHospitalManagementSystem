@@ -1,6 +1,6 @@
-package dao;
+package com.hospital.dao;
 
-import entities.Bill;
+import com.hospital.entities.Bill;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -193,6 +193,6 @@ public class BillDAO implements IBillDAO {
         Date billingDate = rs.getDate("billing_date");
         String paymentStatus = rs.getString("payment_status");
         String paymentType = rs.getString("payment_type");
-        return new Bill(patientId, totalAmount, billId, billingDate, paymentStatus, paymentType);
+        return new Bill(billId, patientId, totalAmount, billingDate, paymentStatus, paymentType);
     }
 }

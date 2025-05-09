@@ -1,6 +1,6 @@
-package controller;
+package com.hospital.controller;
 
-import entities.Patient;
+import com.hospital.entities.Patient;
 
 import java.util.ArrayList;
 import java.util.List;
