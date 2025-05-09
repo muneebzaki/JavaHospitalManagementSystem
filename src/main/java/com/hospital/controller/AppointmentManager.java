@@ -19,9 +19,9 @@ public class AppointmentManager implements IAppointmentManager {
 
     public AppointmentManager() throws SQLException {
         conn = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/yourDatabaseName",
-                "yourUsername",
-                "yourPassword"
+                "jdbc:mysql://sql12.freesqldatabase.com:3306/sql12777954",
+                "sql12777954",
+                "TEeWUtuReF"
         );
         appointmentDAO = new AppointmentDAO(conn);
         doctorManager = new DoctorManager();

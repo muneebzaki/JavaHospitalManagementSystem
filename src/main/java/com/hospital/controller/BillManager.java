@@ -18,9 +18,9 @@ public class BillManager implements IBillManager {
 
     public BillManager() throws SQLException {
         conn = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/yourDatabaseName",
-                "yourUsername",
-                "yourPassword"
+                "jdbc:mysql://sql12.freesqldatabase.com:3306/sql12777954",
+                "sql12777954",
+                "TEeWUtuReF"
         );
         billDAO = new BillDAO(conn);
     }
