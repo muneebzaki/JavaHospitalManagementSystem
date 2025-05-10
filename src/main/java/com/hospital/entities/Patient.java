@@ -2,6 +2,9 @@ package com.hospital.entities;
 
 import java.time.LocalDate;
 
+// -----------------------------
+// Patient.java
+// -----------------------------
 public class Patient {
     private String id;
     private String name;
@@ -26,9 +29,6 @@ public class Patient {
         this.admissionDate = admissionDate;
     }
 
-    // -------------------------------
-    // Getters
-    // -------------------------------
     public String getId() { return id; }
     public String getName() { return name; }
     public int getAge() { return age; }
@@ -39,9 +39,6 @@ public class Patient {
     public String getAddress() { return address; }
     public LocalDate getAdmissionDate() { return admissionDate; }
 
-    // -------------------------------
-    // Setters
-    // -------------------------------
     public void setName(String name) { this.name = name; }
     public void setAge(int age) { this.age = age; }
     public void setGender(String gender) { this.gender = gender; }
@@ -51,21 +48,8 @@ public class Patient {
     public void setAddress(String address) { this.address = address; }
     public void setAdmissionDate(LocalDate admissionDate) { this.admissionDate = admissionDate; }
 
-    // -------------------------------
-    // To String
-    // -------------------------------
     @Override
     public String toString() {
-        return "Patient{" +
-                "ID='" + id + '\'' +
-                ", Name='" + name + '\'' +
-                ", Age=" + age +
-                ", Gender='" + gender + '\'' +
-                ", Disease='" + disease + '\'' +
-                ", Phone='" + phone + '\'' +
-                ", Email='" + email + '\'' +
-                ", Address='" + address + '\'' +
-                ", AdmissionDate=" + admissionDate +
-                '}';
+        return name + " (" + id + ")";
     }
 }

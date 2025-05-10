@@ -8,74 +8,28 @@ public class Doctor {
     private int id;
     private String name;
     private String specialization;
-    private List<LocalDateTime> schedule;
-    private boolean isAvailable;
+    private List<LocalDateTime> schedule = new ArrayList<>();
+    private boolean isAvailable = true;
 
     public Doctor(int id, String name, String specialization) {
         this.id = id;
         this.name = name;
         this.specialization = specialization;
-        this.schedule = new ArrayList<>();
-        this.isAvailable = true;
     }
 
-    // Getters and Setters
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public String getSpecialization() { return specialization; }
+    public List<LocalDateTime> getSchedule() { return new ArrayList<>(schedule); }
+    public boolean isAvailable() { return isAvailable; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSpecialization() {
-        return specialization;
-    }
-
-    public void setSpecialization(String specialization) {
-        this.specialization = specialization;
-    }
-
-    public List<LocalDateTime> getSchedule() {
-        return new ArrayList<>(schedule);
-    }
-
-    public boolean isAvailable() {
-        return isAvailable;
-    }
-
-    public void setAvailable(boolean available) {
-        isAvailable = available;
-    }
-
-    public void addToSchedule(LocalDateTime appointmentTime) {
-        schedule.add(appointmentTime);
-    }
-
-    public void removeFromSchedule(LocalDateTime appointmentTime) {
-        schedule.remove(appointmentTime);
-    }
-
-    public boolean hasAppointmentAt(LocalDateTime time) {
-        return schedule.stream()
-                .anyMatch(scheduledTime -> scheduledTime.equals(time));
-    }
+    public void setAvailable(boolean available) { this.isAvailable = available; }
+    public void addToSchedule(LocalDateTime time) { schedule.add(time); }
+    public void removeFromSchedule(LocalDateTime time) { schedule.remove(time); }
+    public boolean hasAppointmentAt(LocalDateTime time) { return schedule.contains(time); }
 
     @Override
     public String toString() {
-        return "Doctor{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", specialization='" + specialization + '\'' +
-                ", isAvailable=" + isAvailable +
-                '}';
+        return name + " (" + specialization + ")";
     }
-} 
+}
