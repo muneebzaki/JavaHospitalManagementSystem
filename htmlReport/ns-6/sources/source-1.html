@@ -1,0 +1,168 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DBConnection</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.hospital.util</a>
+</div>
+
+<h1>Coverage Summary for Class: DBConnection (com.hospital.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DBConnection</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (2/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    16.7%
+  </span>
+  <span class="absValue">
+    (1/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    71.4%
+  </span>
+  <span class="absValue">
+    (15/21)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.hospital.util;
+&nbsp;
+&nbsp;import com.zaxxer.hikari.HikariConfig;
+&nbsp;import com.zaxxer.hikari.HikariDataSource;
+&nbsp;import java.sql.Connection;
+&nbsp;import java.sql.SQLException;
+&nbsp;
+<b class="nc">&nbsp;public class DBConnection {</b>
+&nbsp;    private static final String URL = &quot;jdbc:mysql://sql12.freesqldatabase.com:3306/sql12777954&quot;;
+&nbsp;    private static final String USER = &quot;sql12777954&quot;;
+&nbsp;    private static final String PASSWORD = &quot;TEeWUtuReF&quot;;
+&nbsp;    
+&nbsp;    private static HikariDataSource dataSource;
+&nbsp;
+&nbsp;    static {
+&nbsp;        try {
+<b class="fc">&nbsp;            Class.forName(&quot;com.mysql.cj.jdbc.Driver&quot;);</b>
+&nbsp;            
+<b class="fc">&nbsp;            HikariConfig config = new HikariConfig();</b>
+<b class="fc">&nbsp;            config.setJdbcUrl(URL);</b>
+<b class="fc">&nbsp;            config.setUsername(USER);</b>
+<b class="fc">&nbsp;            config.setPassword(PASSWORD);</b>
+&nbsp;            
+&nbsp;            // Connection pool settings
+<b class="fc">&nbsp;            config.setMaximumPoolSize(10);</b>
+<b class="fc">&nbsp;            config.setMinimumIdle(5);</b>
+<b class="fc">&nbsp;            config.setIdleTimeout(300000); // 5 minutes</b>
+<b class="fc">&nbsp;            config.setConnectionTimeout(20000); // 20 seconds</b>
+<b class="fc">&nbsp;            config.addDataSourceProperty(&quot;cachePrepStmts&quot;, &quot;true&quot;);</b>
+<b class="fc">&nbsp;            config.addDataSourceProperty(&quot;prepStmtCacheSize&quot;, &quot;250&quot;);</b>
+<b class="fc">&nbsp;            config.addDataSourceProperty(&quot;prepStmtCacheSqlLimit&quot;, &quot;2048&quot;);</b>
+&nbsp;            
+<b class="fc">&nbsp;            dataSource = new HikariDataSource(config);</b>
+&nbsp;        } catch (ClassNotFoundException e) {
+<b class="nc">&nbsp;            System.err.println(&quot;MySQL JDBC driver not found.&quot;);</b>
+<b class="nc">&nbsp;            e.printStackTrace();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Connection getConnection() throws SQLException {
+<b class="pc">&nbsp;        if (dataSource == null) {</b>
+<b class="nc">&nbsp;            throw new SQLException(&quot;Database connection pool not initialized&quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return dataSource.getConnection();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void closePool() {
+<b class="nc">&nbsp;        if (dataSource != null &amp;&amp; !dataSource.isClosed()) {</b>
+<b class="nc">&nbsp;            dataSource.close();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-12 00:33</div>
+</div>
+</body>
+</html>

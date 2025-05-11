@@ -1,13 +1,15 @@
 
 import com.hospital.dao.AppointmentDAO;
 import com.hospital.dao.DoctorDAO;
+import com.hospital.dao.PatientDAO;
 import com.hospital.entities.Appointment;
-import com.hospital.entities.Appointment.Status;
 import com.hospital.entities.Doctor;
+import com.hospital.entities.Patient;
 import com.hospital.util.TestDatabaseUtil;
 import org.junit.jupiter.api.*;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,28 +20,50 @@ class AppointmentDAOIntegrationTest {
 
     private static AppointmentDAO appointmentDao;
     private static DoctorDAO doctorDao;
+    private static PatientDAO patientDao;
     private static Appointment testAppointment;
+    private static Doctor testDoctor;
+    private static Patient testPatient;
     private static int savedId;
     private static int testDoctorId;
+    private static int testPatientId;
 
     @BeforeAll
     static void setup() {
         appointmentDao = new AppointmentDAO();
         doctorDao = new DoctorDAO();
+        patientDao = new PatientDAO();
+
         TestDatabaseUtil.clearAppointmentsTable();
         TestDatabaseUtil.clearDoctorsTable();
+        TestDatabaseUtil.clearPatientsTable();
 
-        // Create a test doctor first
-        Doctor testDoctor = new Doctor("Dr. Test", "General");
-        doctorDao.insertDoctor(testDoctor);
+        // Create test doctor
+        testDoctor = new Doctor("Dr. Test", "General");
+        assertTrue(doctorDao.insertDoctor(testDoctor));
         testDoctorId = testDoctor.getId();
+
+        // Create test patient
+        testPatient = new Patient(
+                0,
+                "Test Patient",
+                30,
+                "Male",
+                "Test Disease",
+                "1234567890",
+                "test@example.com",
+                "Test Address",
+                LocalDate.now()
+        );
+        assertTrue(patientDao.insertPatient(testPatient));
+        testPatientId = testPatient.getId();
     }
 
     @BeforeEach
-    void createAppointment() {
+    void createTestAppointment() {
         testAppointment = new Appointment(
-                1, // patientId
-                testDoctorId, // using the actual doctor ID
+                testPatientId,
+                testDoctorId,
                 LocalDateTime.now().plusDays(1),
                 Duration.ofMinutes(30)
         );
@@ -47,42 +71,39 @@ class AppointmentDAOIntegrationTest {
 
     @Test
     @Order(1)
-    void testInsert() {
-        boolean result = appointmentDao.insert(testAppointment);
+    void testInsertAppointment() {
+        assertTrue(appointmentDao.insert(testAppointment));
         savedId = testAppointment.getId();
-        assertTrue(result);
         assertTrue(savedId > 0);
     }
 
     @Test
     @Order(2)
-    void testFindById() {
-        Appointment appt = appointmentDao.findById(savedId);
-        assertNotNull(appt);
-        assertEquals(testAppointment.getPatientId(), appt.getPatientId());
-        assertEquals(testDoctorId, appt.getDoctorId());
+    void testFindAppointmentById() {
+        Appointment found = appointmentDao.findById(savedId);
+        assertNotNull(found);
+        assertEquals(testPatientId, found.getPatientId());
+        assertEquals(testDoctorId, found.getDoctorId());
     }
 
     @Test
     @Order(3)
-    void testFindByPatientId() {
-        List<Appointment> list = appointmentDao.findByPatientId(testAppointment.getPatientId());
-        assertFalse(list.isEmpty());
-        assertEquals(testAppointment.getPatientId(), list.get(0).getPatientId());
-        assertEquals(testDoctorId, list.get(0).getDoctorId());
+    void testFindAppointmentsByPatientId() {
+        List<Appointment> appointments = appointmentDao.findByPatientId(testPatientId);
+        assertFalse(appointments.isEmpty());
+        assertEquals(testPatientId, appointments.get(0).getPatientId());
     }
 
     @Test
     @Order(4)
-    void testUpdateStatus() {
-        boolean result = appointmentDao.updateStatus(savedId, Status.COMPLETED);
-        assertTrue(result);
-        assertEquals(Status.COMPLETED, appointmentDao.findById(savedId).getStatus());
+    void testUpdateAppointmentStatus() {
+        assertTrue(appointmentDao.updateStatus(savedId, Appointment.Status.COMPLETED));
+        assertEquals(Appointment.Status.COMPLETED, appointmentDao.findById(savedId).getStatus());
     }
 
     @Test
     @Order(5)
-    void testFindAll() {
+    void testFindAllAppointments() {
         List<Appointment> all = appointmentDao.findAll();
         assertFalse(all.isEmpty());
         assertTrue(all.stream().anyMatch(a -> a.getId() == savedId));
@@ -90,13 +111,54 @@ class AppointmentDAOIntegrationTest {
 
     @Test
     @Order(6)
-    void testUpdateStatusInvalidId() {
-        assertFalse(appointmentDao.updateStatus(-1, Status.CANCELLED));
+    void testUpdateInvalidAppointment() {
+        assertFalse(appointmentDao.updateStatus(-1, Appointment.Status.CANCELLED));
+    }
+
+    @Test
+    @Order(7)
+    void testInsertAppointmentWithInvalidPatient() {
+        Appointment invalid = new Appointment(-1, testDoctorId,
+                LocalDateTime.now().plusDays(1), Duration.ofMinutes(30));
+        assertFalse(appointmentDao.insert(invalid));
+    }
+
+    @Test
+    @Order(8)
+    void testInsertAppointmentWithInvalidDoctor() {
+        Appointment invalid = new Appointment(testPatientId, -1,
+                LocalDateTime.now().plusDays(1), Duration.ofMinutes(30));
+        assertFalse(appointmentDao.insert(invalid));
+    }
+
+    @Test
+    @Order(9)
+    void testInsertAppointmentInPast() {
+        Appointment pastAppointment = new Appointment(
+                testPatientId,
+                testDoctorId,
+                LocalDateTime.now().minusDays(1),
+                Duration.ofMinutes(30)
+        );
+        assertFalse(appointmentDao.insert(pastAppointment));
+    }
+
+    @Test
+    @Order(10)
+    void testInsertOverlappingAppointment() {
+        Appointment overlapping = new Appointment(
+                testPatientId,
+                testDoctorId,
+                testAppointment.getDateTime(),
+                Duration.ofMinutes(30)
+        );
+        assertFalse(appointmentDao.insert(overlapping));
     }
 
     @AfterAll
-    static void teardown() {
+    static void cleanup() {
         TestDatabaseUtil.clearAppointmentsTable();
         TestDatabaseUtil.clearDoctorsTable();
+        TestDatabaseUtil.clearPatientsTable();
     }
 }
