@@ -1,5 +1,7 @@
 import com.hospital.dao.BillDAO;
+import com.hospital.dao.PatientDAO;
 import com.hospital.entities.Bill;
+import com.hospital.entities.Patient;
 import com.hospital.util.TestDatabaseUtil;
 import org.junit.jupiter.api.*;
 
@@ -13,21 +15,45 @@ import static org.junit.jupiter.api.Assertions.*;
 class BillDAOIntegrationTest {
 
     private static BillDAO billDAO;
+    private static PatientDAO patientDAO;
     private static Bill testBill;
-    private static int savedBillId; // Add this to store the generated ID
+    private static Patient testPatient;
+    private static int savedBillId;
+    private static int testPatientId;
+
 
 
     @BeforeAll
     static void setUp() {
         billDAO = new BillDAO();
+        patientDAO = new PatientDAO();
         TestDatabaseUtil.clearBillingTable();
+
+        // Create a test patient first
+        testPatient = new Patient(
+                null,  // ID will be auto-generated
+                "Test Patient",
+                30,
+                "Male",
+                "Test Disease",
+                "1234567890",
+                "test@example.com",
+                "Test Address",
+                LocalDate.now()
+        );
+        // Insert the test patient and store their ID
+        boolean patientInserted = patientDAO.insertPatient(testPatient);
+        if (!patientInserted) {
+            throw new RuntimeException("Failed to insert test patient");
+        }
+        testPatientId = Integer.parseInt(testPatient.getId());
     }
 
     @BeforeEach
     void setupTestData() {
         testBill = new Bill(
                 0,  // ID will be set by database
-                1,  // patient ID
+                testPatientId,  // Use the actual patient ID
                 100.0,  // amount
                 Date.valueOf(LocalDate.now()),
                 "PENDING"
@@ -121,5 +147,6 @@ class BillDAOIntegrationTest {
     @AfterAll
     static void tearDown() {
         TestDatabaseUtil.clearBillingTable();
+        patientDAO.deletePatientById(testPatient.getId());
     }
 }
