@@ -74,7 +74,7 @@ public class AppointmentFrame extends JFrame {
 
                 boolean added = appointmentManager.createAppointment(pid, did, dt, duration);
                 if (added) {
-                    JOptionPane.showMessageDialog(this, "Appointment added!");
+                    JOptionPane.showMessageDialog(this, "Appointment added");
                     refreshTable();
                 } else {
                     JOptionPane.showMessageDialog(this, "Failed to add appointment.");

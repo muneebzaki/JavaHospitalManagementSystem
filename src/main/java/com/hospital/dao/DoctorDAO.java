@@ -6,8 +6,25 @@ import com.hospital.util.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DoctorDAO {
+    private static final Map<Integer, Doctor> doctorCache = new ConcurrentHashMap<>();
+    private static final long CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+    private static long lastCacheUpdate = 0;
+
+    private void updateCache() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastCacheUpdate > CACHE_DURATION) {
+            List<Doctor> doctors = findAll();
+            doctorCache.clear();
+            for (Doctor doctor : doctors) {
+                doctorCache.put(doctor.getId(), doctor);
+            }
+            lastCacheUpdate = currentTime;
+        }
+    }
 
     public boolean insertDoctor(Doctor doctor) {
         String sql = "INSERT INTO doctors (name, specialization) VALUES (?, ?)";
@@ -23,6 +40,7 @@ public class DoctorDAO {
                 ResultSet rs = stmt.getGeneratedKeys();
                 if (rs.next()) {
                     doctor.setId(rs.getInt(1));
+                    doctorCache.put(doctor.getId(), doctor);
                 }
                 return true;
             }
@@ -44,7 +62,11 @@ public class DoctorDAO {
             stmt.setString(2, doctor.getSpecialization());
             stmt.setInt(3, doctor.getId());
 
-            return stmt.executeUpdate() > 0;
+            boolean success = stmt.executeUpdate() > 0;
+            if (success) {
+                doctorCache.put(doctor.getId(), doctor);
+            }
+            return success;
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -60,7 +82,11 @@ public class DoctorDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
+            boolean success = stmt.executeUpdate() > 0;
+            if (success) {
+                doctorCache.remove(id);
+            }
+            return success;
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -70,27 +96,8 @@ public class DoctorDAO {
     }
 
     public Doctor findById(int id) {
-        String sql = "SELECT * FROM doctors WHERE id=?";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return new Doctor(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("specialization")
-                );
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        updateCache();
+        return doctorCache.get(id);
     }
 
     public List<Doctor> findAll() {
@@ -102,11 +109,13 @@ public class DoctorDAO {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                doctors.add(new Doctor(
+                Doctor doctor = new Doctor(
                         rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("specialization")
-                ));
+                );
+                doctors.add(doctor);
+                doctorCache.put(doctor.getId(), doctor);
             }
 
         } catch (SQLException e) {

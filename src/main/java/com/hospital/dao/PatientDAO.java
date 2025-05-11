@@ -34,6 +34,51 @@ public class PatientDAO {
         }
     }
 
+    public boolean batchInsertPatients(List<Patient> patients) {
+        if (patients == null || patients.isEmpty()) {
+            return false;
+        }
+
+        String sql = "INSERT INTO patients (id, name, age, gender, disease, phone, email, address, admission_date) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            conn.setAutoCommit(false);
+            int batchSize = 1000;
+            int count = 0;
+
+            for (Patient patient : patients) {
+                stmt.setString(1, patient.getId());
+                stmt.setString(2, patient.getName());
+                stmt.setInt(3, patient.getAge());
+                stmt.setString(4, patient.getGender());
+                stmt.setString(5, patient.getDisease());
+                stmt.setString(6, patient.getPhone());
+                stmt.setString(7, patient.getEmail());
+                stmt.setString(8, patient.getAddress());
+                stmt.setDate(9, Date.valueOf(patient.getAdmissionDate()));
+                stmt.addBatch();
+
+                if (++count % batchSize == 0) {
+                    stmt.executeBatch();
+                }
+            }
+
+            if (count % batchSize != 0) {
+                stmt.executeBatch();
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean updatePatient(Patient patient) {
         String sql = "UPDATE patients SET name=?, age=?, gender=?, disease=?, phone=?, email=?, address=?, admission_date=? " +
                 "WHERE id=?";

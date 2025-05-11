@@ -74,7 +74,7 @@ public class PatientFrame extends JFrame {
             Patient newPatient = new Patient(id, name, age, gender, disease, "", "", "", LocalDate.now());
             boolean added = patientManager.addPatient(newPatient);
             if (added) {
-                JOptionPane.showMessageDialog(this, "Patient added!");
+                JOptionPane.showMessageDialog(this, "Patient added");
                 refreshPatientTable();
             } else {
                 JOptionPane.showMessageDialog(this, "Error adding patient.");

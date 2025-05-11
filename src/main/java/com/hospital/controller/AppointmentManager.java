@@ -18,6 +18,7 @@ public class AppointmentManager {
 
     public Appointment getAppointment(int id) {
         return dao.findById(id);
+        
     }
 
     public List<Appointment> getAppointmentsForPatient(int patientId) {
