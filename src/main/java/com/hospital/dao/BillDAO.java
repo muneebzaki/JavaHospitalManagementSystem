@@ -81,7 +81,7 @@ public class BillDAO {
     }
 
     public boolean updateStatus(int billId, String newStatus) {
-        String sql = "UPDATE billing SET status = ? WHERE bill_id = ?";
+        String sql = "UPDATE billing SET status = ? WHERE id = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -100,7 +100,7 @@ public class BillDAO {
 
     private Bill extractBill(ResultSet rs) throws SQLException {
         return new Bill(
-                rs.getInt("bill_id"),
+                rs.getInt("id"),
                 rs.getInt("patient_id"),
                 rs.getDouble("amount"),
                 rs.getDate("billing_date"),
