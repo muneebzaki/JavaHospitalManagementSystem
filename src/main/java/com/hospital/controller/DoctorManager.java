@@ -8,8 +8,14 @@ import java.util.List;
 public class DoctorManager {
     private final DoctorDAO doctorDAO;
 
+    // Default constructor
     public DoctorManager() {
         this.doctorDAO = new DoctorDAO();
+    }
+
+    // Constructor for dependency injection (used in testing)
+    public DoctorManager(DoctorDAO doctorDAO) {
+        this.doctorDAO = doctorDAO;
     }
 
     public boolean addDoctor(Doctor doctor) {

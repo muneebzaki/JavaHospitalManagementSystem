@@ -9,7 +9,17 @@ import java.time.Duration;
 import java.util.List;
 
 public class AppointmentManager {
-    private final AppointmentDAO dao = new AppointmentDAO();
+    private final AppointmentDAO dao;
+
+    // Constructor for production use
+    public AppointmentManager() {
+        this.dao = new AppointmentDAO();
+    }
+
+    // Constructor for testing with mock DAO
+    public AppointmentManager(AppointmentDAO dao) {
+        this.dao = dao;
+    }
 
     public boolean createAppointment(int patientId, int doctorId, LocalDateTime dateTime, Duration duration) {
         Appointment a = new Appointment(patientId, doctorId, dateTime, duration);
@@ -18,7 +28,6 @@ public class AppointmentManager {
 
     public Appointment getAppointment(int id) {
         return dao.findById(id);
-        
     }
 
     public List<Appointment> getAppointmentsForPatient(int patientId) {
@@ -36,5 +45,4 @@ public class AppointmentManager {
     public List<Appointment> getAllAppointments() {
         return dao.findAll();
     }
-
 }
