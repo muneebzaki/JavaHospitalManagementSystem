@@ -13,6 +13,9 @@ public class BillManager {
     public BillManager() {
         this.billDAO = new BillDAO();
     }
+    public BillManager(BillDAO billDAO) {
+        this.billDAO = billDAO;
+    }
 
     public boolean generateBill(int patientId, double amount, String status) {
         Bill bill = new Bill(0, patientId, amount, Date.valueOf(LocalDate.now()), status);
@@ -33,5 +36,9 @@ public class BillManager {
 
     public boolean cancelBill(int billId) {
         return billDAO.updateStatus(billId, "CANCELLED");
+    }
+
+    protected BillDAO getBillDAO() {
+        return billDAO;
     }
 }
