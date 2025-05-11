@@ -1,148 +1,110 @@
 package com.hospital.dao;
 
 import com.hospital.entities.Bill;
+import com.hospital.util.DBConnection;
+
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BillDAO extends BaseDAO<Bill> implements IBillDAO {
-    
-    public BillDAO(Connection connection) {
-        super(connection, "Billing", "bill_id");
+public class BillDAO {
+
+    public boolean insertBill(Bill bill) {
+        String sql = "INSERT INTO billing (patient_id, amount, billing_date, status) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setInt(1, bill.getPatientId());
+            stmt.setDouble(2, bill.getAmount());
+            stmt.setDate(3, bill.getBillingDate());
+            stmt.setString(4, bill.getStatus());
+
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        bill.setId(rs.getInt(1));
+                    }
+                }
+                return true;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error inserting bill:");
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
-    @Override
-    protected Bill extractEntity(ResultSet rs) throws SQLException {
-        return new Bill(
-            rs.getInt("bill_id"),
-            rs.getInt("patient_id"),
-            rs.getDouble("total_amount"),
-            rs.getDate("billing_date"),
-            rs.getString("payment_status"),
-            rs.getString("payment_type")
-        );
-    }
-
-    @Override
-    protected String getInsertQuery() {
-        return "INSERT INTO Billing (patient_id, total_amount, billing_date, payment_status, payment_type) " +
-               "VALUES (?, ?, ?, ?, ?)";
-    }
-
-    @Override
-    protected String getUpdateQuery() {
-        return "UPDATE Billing SET patient_id=?, total_amount=?, billing_date=?, " +
-               "payment_status=?, payment_type=? WHERE bill_id=?";
-    }
-
-    @Override
-    protected void setInsertParameters(PreparedStatement stmt, Bill bill) throws SQLException {
-        stmt.setInt(1, bill.getPatientId());
-        stmt.setDouble(2, bill.getTotal_amount());
-        stmt.setDate(3, bill.getBilling_date());
-        stmt.setString(4, bill.getPayment_status());
-        stmt.setString(5, bill.getPayment_type());
-    }
-
-    @Override
-    protected void setUpdateParameters(PreparedStatement stmt, Bill bill) throws SQLException {
-        setInsertParameters(stmt, bill);
-        stmt.setInt(6, bill.getBillId());
-    }
-
-    @Override
-    public List<Bill> findByPatientId(int patientId) {
-        String sql = "SELECT * FROM Billing WHERE patient_id = ?";
+    public List<Bill> findAll() {
         List<Bill> bills = new ArrayList<>();
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        String sql = "SELECT * FROM billing";
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                bills.add(extractBill(rs));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error retrieving all bills:");
+            e.printStackTrace();
+        }
+
+        return bills;
+    }
+
+    public List<Bill> findByPatientId(int patientId) {
+        List<Bill> bills = new ArrayList<>();
+        String sql = "SELECT * FROM billing WHERE patient_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, patientId);
             ResultSet rs = stmt.executeQuery();
+
             while (rs.next()) {
-                bills.add(extractEntity(rs));
+                bills.add(extractBill(rs));
             }
+
         } catch (SQLException e) {
+            System.err.println("Error retrieving bills by patient:");
             e.printStackTrace();
         }
+
         return bills;
     }
 
-    @Override
-    public List<Bill> findByStatus(String status) {
-        String sql = "SELECT * FROM Billing WHERE payment_status = ?";
-        List<Bill> bills = new ArrayList<>();
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, status);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                bills.add(extractEntity(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return bills;
-    }
+    public boolean updateStatus(int billId, String newStatus) {
+        String sql = "UPDATE billing SET status = ? WHERE bill_id = ?";
 
-    @Override
-    public List<Bill> findByType(String type) {
-        String sql = "SELECT * FROM Billing WHERE payment_type = ?";
-        List<Bill> bills = new ArrayList<>();
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, type);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                bills.add(extractEntity(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return bills;
-    }
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-    @Override
-    public List<Bill> findBetweenDates(LocalDate startDate, LocalDate endDate) {
-        String sql = "SELECT * FROM Billing WHERE billing_date BETWEEN ? AND ?";
-        List<Bill> bills = new ArrayList<>();
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setDate(1, Date.valueOf(startDate));
-            stmt.setDate(2, Date.valueOf(endDate));
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                bills.add(extractEntity(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return bills;
-    }
-
-    @Override
-    public List<Bill> findByMonthAndYear(int month, int year) {
-        String sql = "SELECT * FROM Billing WHERE MONTH(billing_date) = ? AND YEAR(billing_date) = ?";
-        List<Bill> bills = new ArrayList<>();
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, month);
-            stmt.setInt(2, year);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                bills.add(extractEntity(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return bills;
-    }
-
-    @Override
-    public boolean updateStatus(int billId, String status) {
-        String sql = "UPDATE Billing SET payment_status = ? WHERE bill_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, status);
+            stmt.setString(1, newStatus);
             stmt.setInt(2, billId);
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
+            System.err.println("Error updating bill status:");
             e.printStackTrace();
-            return false;
         }
+
+        return false;
+    }
+
+    private Bill extractBill(ResultSet rs) throws SQLException {
+        return new Bill(
+                rs.getInt("bill_id"),
+                rs.getInt("patient_id"),
+                rs.getDouble("amount"),
+                rs.getDate("billing_date"),
+                rs.getString("status")
+        );
     }
 }

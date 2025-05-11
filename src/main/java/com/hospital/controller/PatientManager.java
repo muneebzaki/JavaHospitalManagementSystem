@@ -1,61 +1,42 @@
 package com.hospital.controller;
 
-import com.hospital.dao.IPatientDAO;
 import com.hospital.dao.PatientDAO;
 import com.hospital.entities.Patient;
 
 import java.util.List;
 
 public class PatientManager {
-    private final IPatientDAO patientDAO;
+    private final PatientDAO patientDAO;
 
     public PatientManager() {
-        this.patientDAO = new PatientDAO();  // Uses JDBC now
+        this.patientDAO = new PatientDAO();
     }
 
     public boolean addPatient(Patient patient) {
-        return patientDAO.insertPatient(patient);
-    }
-
-    public boolean removePatientById(String id) {
-        return patientDAO.deletePatientById(id);
-    }
-
-    public Patient findPatientById(String id) {
-        return patientDAO.findPatientById(id);
+        return patient != null && patientDAO.insertPatient(patient);
     }
 
     public boolean updatePatient(Patient updated) {
-        return patientDAO.updatePatient(updated);
+        return updated != null && patientDAO.updatePatient(updated);
+    }
+
+    public boolean removePatientById(String id) {
+        return id != null && !id.isBlank() && patientDAO.deletePatientById(id);
+    }
+
+    public Patient getPatientById(String id) {
+        return id == null || id.isBlank() ? null : patientDAO.findPatientById(id);
     }
 
     public List<Patient> getAllPatients() {
         return patientDAO.findAllPatients();
     }
 
+    public boolean patientExists(String id) {
+        return getPatientById(id) != null;
+    }
+
     public int getPatientCount() {
         return getAllPatients().size();
-    }
-
-    public boolean patientExists(String id) {
-        return findPatientById(id) != null;
-    }
-
-    public boolean clearAllPatients() {
-        List<Patient> all = getAllPatients();
-        boolean success = true;
-        for (Patient p : all) {
-            success &= removePatientById(p.getId());
-        }
-        return success;
-    }
-
-    public void listAllPatients() {
-        List<Patient> all = getAllPatients();
-        if (all.isEmpty()) {
-            System.out.println("No patients found.");
-        } else {
-            all.forEach(System.out::println);
-        }
     }
 }

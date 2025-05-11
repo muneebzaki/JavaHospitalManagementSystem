@@ -4,18 +4,17 @@ import com.hospital.entities.Patient;
 import com.hospital.util.DBConnection;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PatientDAO implements IPatientDAO {
+public class PatientDAO {
 
-    @Override
     public boolean insertPatient(Patient patient) {
-        String query = "INSERT INTO patients (id, name, age, gender, disease, phone, email, address, admission_date) " +
+        String sql = "INSERT INTO patients (id, name, age, gender, disease, phone, email, address, admission_date) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, patient.getId());
             stmt.setString(2, patient.getName());
@@ -35,11 +34,12 @@ public class PatientDAO implements IPatientDAO {
         }
     }
 
-    @Override
     public boolean updatePatient(Patient patient) {
-        String query = "UPDATE patients SET name=?, age=?, gender=?, disease=?, phone=?, email=?, address=?, admission_date=? WHERE id=?";
+        String sql = "UPDATE patients SET name=?, age=?, gender=?, disease=?, phone=?, email=?, address=?, admission_date=? " +
+                "WHERE id=?";
+
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, patient.getName());
             stmt.setInt(2, patient.getAge());
@@ -59,11 +59,11 @@ public class PatientDAO implements IPatientDAO {
         }
     }
 
-    @Override
     public boolean deletePatientById(String id) {
-        String query = "DELETE FROM patients WHERE id = ?";
+        String sql = "DELETE FROM patients WHERE id = ?";
+
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, id);
             return stmt.executeUpdate() > 0;
@@ -74,45 +74,46 @@ public class PatientDAO implements IPatientDAO {
         }
     }
 
-    @Override
     public Patient findPatientById(String id) {
-        String query = "SELECT * FROM patients WHERE id = ?";
+        String sql = "SELECT * FROM patients WHERE id = ?";
+
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, id);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                return extractPatientFromResultSet(rs);
+                return extractPatient(rs);
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return null;
     }
 
-    @Override
     public List<Patient> findAllPatients() {
         List<Patient> patients = new ArrayList<>();
-        String query = "SELECT * FROM patients";
+        String sql = "SELECT * FROM patients";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                patients.add(extractPatientFromResultSet(rs));
+                patients.add(extractPatient(rs));
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return patients;
     }
 
-    private Patient extractPatientFromResultSet(ResultSet rs) throws SQLException {
+    private Patient extractPatient(ResultSet rs) throws SQLException {
         return new Patient(
                 rs.getString("id"),
                 rs.getString("name"),

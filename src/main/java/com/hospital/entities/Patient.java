@@ -2,9 +2,6 @@ package com.hospital.entities;
 
 import java.time.LocalDate;
 
-// -----------------------------
-// Patient.java
-// -----------------------------
 public class Patient {
     private String id;
     private String name;

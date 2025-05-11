@@ -3,32 +3,35 @@ package com.hospital.entities;
 import java.sql.Date;
 
 public class Bill {
-    private int billId;
+    private int id;
     private int patientId;
-    private double totalAmount;
+    private double amount;
     private Date billingDate;
-    private String paymentStatus;
-    private String paymentType;
+    private String status;
 
-    public Bill(int billId, int patientId, double totalAmount, Date billingDate,
-                String paymentStatus, String paymentType) {
-        this.billId = billId;
+    public Bill(int id, int patientId, double amount, Date billingDate, String status) {
+        this.id = id;
         this.patientId = patientId;
-        this.totalAmount = totalAmount;
+        this.amount = amount;
         this.billingDate = billingDate;
-        this.paymentStatus = paymentStatus;
-        this.paymentType = paymentType;
+        this.status = status;
     }
 
-    public int getBillId() { return billId; }
+    public Bill(int patientId, double amount, Date billingDate, String status) {
+        this(0, patientId, amount, billingDate, status);
+    }
+
+    public int getId() { return id; }
     public int getPatientId() { return patientId; }
-    public double getTotalAmount() { return totalAmount; }
+    public double getAmount() { return amount; }
     public Date getBillingDate() { return billingDate; }
-    public String getPaymentStatus() { return paymentStatus; }
-    public String getPaymentType() { return paymentType; }
+    public String getStatus() { return status; }
+
+    public void setId(int id) { this.id = id; }
+    public void setStatus(String status) { this.status = status; }
 
     @Override
     public String toString() {
-        return "Bill ID: " + billId + ", Patient ID: " + patientId + ", Amount: " + totalAmount;
+        return "Bill #" + id + " | Patient: " + patientId + " | Amount: " + amount + " | Status: " + status;
     }
 }

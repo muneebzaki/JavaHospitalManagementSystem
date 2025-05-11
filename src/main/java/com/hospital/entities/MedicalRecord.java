@@ -9,27 +9,19 @@ public class MedicalRecord {
     private LocalDateTime date;
     private String diagnosis;
     private String treatment;
-    private String prescription;
-    private String notes;
-    private String status;
 
     public MedicalRecord(int recordId, int patientId, int doctorId, LocalDateTime date,
-                         String diagnosis, String treatment, String prescription,
-                         String notes, String status) {
+                         String diagnosis, String treatment) {
         this.recordId = recordId;
         this.patientId = patientId;
         this.doctorId = doctorId;
         this.date = date;
         this.diagnosis = diagnosis;
         this.treatment = treatment;
-        this.prescription = prescription;
-        this.notes = notes;
-        this.status = status;
     }
 
-    public MedicalRecord(int patientId, int doctorId, String diagnosis,
-                         String treatment, String prescription, String notes) {
-        this(0, patientId, doctorId, LocalDateTime.now(), diagnosis, treatment, prescription, notes, "ACTIVE");
+    public MedicalRecord(int patientId, int doctorId, String diagnosis, String treatment) {
+        this(0, patientId, doctorId, LocalDateTime.now(), diagnosis, treatment);
     }
 
     public int getRecordId() { return recordId; }
@@ -38,12 +30,11 @@ public class MedicalRecord {
     public LocalDateTime getDate() { return date; }
     public String getDiagnosis() { return diagnosis; }
     public String getTreatment() { return treatment; }
-    public String getPrescription() { return prescription; }
-    public String getNotes() { return notes; }
-    public String getStatus() { return status; }
+
+    public void setRecordId(int recordId) { this.recordId = recordId; }
 
     @Override
     public String toString() {
-        return "Record ID: " + recordId + ", Patient ID: " + patientId + ", Diagnosis: " + diagnosis;
+        return "MedicalRecord #" + recordId + " - Patient " + patientId + ": " + diagnosis;
     }
 }
