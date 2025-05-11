@@ -9,24 +9,36 @@ import java.util.List;
 
 public class PatientDAO {
 
+
     public boolean insertPatient(Patient patient) {
-        String sql = "INSERT INTO patients (id, name, age, gender, disease, phone, email, address, admission_date) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO patients (name, age, gender, disease, phone, email, address, admission_date) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setString(1, patient.getId());
-            stmt.setString(2, patient.getName());
-            stmt.setInt(3, patient.getAge());
-            stmt.setString(4, patient.getGender());
-            stmt.setString(5, patient.getDisease());
-            stmt.setString(6, patient.getPhone());
-            stmt.setString(7, patient.getEmail());
-            stmt.setString(8, patient.getAddress());
-            stmt.setDate(9, Date.valueOf(patient.getAdmissionDate()));
+            stmt.setString(1, patient.getName());
+            stmt.setInt(2, patient.getAge());
+            stmt.setString(3, patient.getGender());
+            stmt.setString(4, patient.getDisease());
+            stmt.setString(5, patient.getPhone());
+            stmt.setString(6, patient.getEmail());
+            stmt.setString(7, patient.getAddress());
+            stmt.setDate(8, Date.valueOf(patient.getAdmissionDate()));
 
-            return stmt.executeUpdate() > 0;
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        // Convert the auto-generated integer ID to string and set it in the patient object
+                        String generatedId = String.valueOf(generatedKeys.getInt(1));
+                        patient.setId(generatedId);
+                        return true;
+                    }
+                }
+            }
+            return false;
 
         } catch (SQLException e) {
             e.printStackTrace();
