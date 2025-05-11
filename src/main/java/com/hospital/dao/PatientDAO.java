@@ -9,7 +9,6 @@ import java.util.List;
 
 public class PatientDAO {
 
-
     public boolean insertPatient(Patient patient) {
         String sql = "INSERT INTO patients (name, age, gender, disease, phone, email, address, admission_date) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -31,9 +30,7 @@ public class PatientDAO {
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
-                        // Convert the auto-generated integer ID to string and set it in the patient object
-                        String generatedId = String.valueOf(generatedKeys.getInt(1));
-                        patient.setId(generatedId);
+                        patient.setId(generatedKeys.getInt(1));
                         return true;
                     }
                 }
@@ -46,52 +43,7 @@ public class PatientDAO {
         }
     }
 
-    public boolean batchInsertPatients(List<Patient> patients) {
-        if (patients == null || patients.isEmpty()) {
-            return false;
-        }
-
-        String sql = "INSERT INTO patients (id, name, age, gender, disease, phone, email, address, admission_date) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            conn.setAutoCommit(false);
-            int batchSize = 1000;
-            int count = 0;
-
-            for (Patient patient : patients) {
-                stmt.setString(1, patient.getId());
-                stmt.setString(2, patient.getName());
-                stmt.setInt(3, patient.getAge());
-                stmt.setString(4, patient.getGender());
-                stmt.setString(5, patient.getDisease());
-                stmt.setString(6, patient.getPhone());
-                stmt.setString(7, patient.getEmail());
-                stmt.setString(8, patient.getAddress());
-                stmt.setDate(9, Date.valueOf(patient.getAdmissionDate()));
-                stmt.addBatch();
-
-                if (++count % batchSize == 0) {
-                    stmt.executeBatch();
-                }
-            }
-
-            if (count % batchSize != 0) {
-                stmt.executeBatch();
-            }
-
-            conn.commit();
-            return true;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean updatePatient(Patient patient) {
+    public boolean updatePatientById(int id, Patient patient) {
         String sql = "UPDATE patients SET name=?, age=?, gender=?, disease=?, phone=?, email=?, address=?, admission_date=? " +
                 "WHERE id=?";
 
@@ -106,7 +58,7 @@ public class PatientDAO {
             stmt.setString(6, patient.getEmail());
             stmt.setString(7, patient.getAddress());
             stmt.setDate(8, Date.valueOf(patient.getAdmissionDate()));
-            stmt.setString(9, patient.getId());
+            stmt.setInt(9, id);
 
             return stmt.executeUpdate() > 0;
 
@@ -116,13 +68,13 @@ public class PatientDAO {
         }
     }
 
-    public boolean deletePatientById(String id) {
+    public boolean deletePatientById(Integer id) {
         String sql = "DELETE FROM patients WHERE id = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, id);
+            stmt.setInt(1, id);
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -131,13 +83,13 @@ public class PatientDAO {
         }
     }
 
-    public Patient findPatientById(String id) {
+    public Patient findPatientById(Integer id) {
         String sql = "SELECT * FROM patients WHERE id = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, id);
+            stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
@@ -172,7 +124,7 @@ public class PatientDAO {
 
     private Patient extractPatient(ResultSet rs) throws SQLException {
         return new Patient(
-                rs.getString("id"),
+                rs.getInt("id"),
                 rs.getString("name"),
                 rs.getInt("age"),
                 rs.getString("gender"),

@@ -3,7 +3,7 @@ package com.hospital.entities;
 import java.time.LocalDate;
 
 public class Patient {
-    private String id;
+    private int id;
     private String name;
     private int age;
     private String gender;
@@ -13,7 +13,7 @@ public class Patient {
     private String address;
     private LocalDate admissionDate;
 
-    public Patient(String id, String name, int age, String gender, String disease,
+    public Patient(int id, String name, int age, String gender, String disease,
                    String phone, String email, String address, LocalDate admissionDate) {
         this.id = id;
         this.name = name;
@@ -26,8 +26,20 @@ public class Patient {
         this.admissionDate = admissionDate;
     }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public Patient(String name, int age, String gender, String disease,
+                   String phone, String email, String address, LocalDate admissionDate) {
+        this.name = name;
+        this.age = age;
+        this.gender = gender;
+        this.disease = disease;
+        this.phone = phone;
+        this.email = email;
+        this.address = address;
+        this.admissionDate = admissionDate;
+    }
+
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
     public String getName() { return name; }
     public int getAge() { return age; }
     public String getGender() { return gender; }

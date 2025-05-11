@@ -1,3 +1,4 @@
+
 import com.hospital.controller.PatientManager;
 import com.hospital.dao.PatientDAO;
 import com.hospital.entities.Patient;
@@ -26,7 +27,7 @@ class PatientManagerTest {
     void setup() {
         MockitoAnnotations.openMocks(this);
         testPatient = new Patient(
-                "P1001",
+                1001, // Integer ID instead of String
                 "John Doe",
                 45,
                 "Male",
@@ -47,24 +48,30 @@ class PatientManagerTest {
 
     @Test
     void testUpdatePatient() {
-        when(mockDao.updatePatient(testPatient)).thenReturn(true);
+        when(mockDao.updatePatientById(testPatient.getId(), testPatient)).thenReturn(true);
         assertTrue(manager.updatePatient(testPatient));
-        verify(mockDao).updatePatient(testPatient);
+        verify(mockDao).updatePatientById(testPatient.getId(), testPatient);
     }
 
     @Test
     void testRemovePatientById() {
-        when(mockDao.deletePatientById("P1001")).thenReturn(true);
-        assertTrue(manager.removePatientById("P1001"));
-        verify(mockDao).deletePatientById("P1001");
+        when(mockDao.deletePatientById(1001)).thenReturn(true);
+        assertTrue(manager.removePatientById(1001));
+        verify(mockDao).deletePatientById(1001);
     }
 
     @Test
     void testGetPatientById() {
-        when(mockDao.findPatientById("P1001")).thenReturn(testPatient);
-        Patient result = manager.getPatientById("P1001");
+        when(mockDao.findPatientById(1001)).thenReturn(testPatient);
+        Patient result = manager.getPatientById(1001);
         assertNotNull(result);
         assertEquals("John Doe", result.getName());
+    }
+
+    @Test
+    void testGetPatientByNullId() {
+        assertNull(manager.getPatientById(null));
+        verify(mockDao, never()).findPatientById(any());
     }
 
     @Test
@@ -76,8 +83,14 @@ class PatientManagerTest {
 
     @Test
     void testPatientExists() {
-        when(mockDao.findPatientById("P1001")).thenReturn(testPatient);
-        assertTrue(manager.patientExists("P1001"));
+        when(mockDao.findPatientById(1001)).thenReturn(testPatient);
+        assertTrue(manager.patientExists(1001));
+    }
+
+    @Test
+    void testPatientDoesNotExist() {
+        when(mockDao.findPatientById(1001)).thenReturn(null);
+        assertFalse(manager.patientExists(1001));
     }
 
     @Test

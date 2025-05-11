@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
+import java.util.Iterator;
 import java.util.List;
 
 public class PatientFrame extends JFrame {
@@ -71,7 +72,7 @@ public class PatientFrame extends JFrame {
             String gender = genderField.getText();
             String disease = diseaseField.getText();
 
-            Patient newPatient = new Patient(id, name, age, gender, disease, "", "", "", LocalDate.now());
+            Patient newPatient = new Patient(Integer.parseInt(id), name, age, gender, disease, "", "", "", LocalDate.now());
             boolean added = patientManager.addPatient(newPatient);
             if (added) {
                 JOptionPane.showMessageDialog(this, "Patient added");
@@ -86,7 +87,7 @@ public class PatientFrame extends JFrame {
         int selected = patientTable.getSelectedRow();
         if (selected >= 0) {
             String id = (String) tableModel.getValueAt(selected, 0);
-            boolean deleted = patientManager.removePatientById(id);
+            boolean deleted = patientManager.removePatientById(Integer.parseInt(id));
             if (deleted) {
                 JOptionPane.showMessageDialog(this, "Patient deleted.");
                 refreshPatientTable();

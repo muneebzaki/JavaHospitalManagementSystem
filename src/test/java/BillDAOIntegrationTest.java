@@ -21,8 +21,6 @@ class BillDAOIntegrationTest {
     private static int savedBillId;
     private static int testPatientId;
 
-
-
     @BeforeAll
     static void setUp() {
         billDAO = new BillDAO();
@@ -31,7 +29,7 @@ class BillDAOIntegrationTest {
 
         // Create a test patient first
         testPatient = new Patient(
-                null,  // ID will be auto-generated
+                0,  // ID will be auto-generated
                 "Test Patient",
                 30,
                 "Male",
@@ -46,7 +44,7 @@ class BillDAOIntegrationTest {
         if (!patientInserted) {
             throw new RuntimeException("Failed to insert test patient");
         }
-        testPatientId = Integer.parseInt(testPatient.getId());
+        testPatientId = testPatient.getId();
     }
 
     @BeforeEach

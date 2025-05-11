@@ -13,17 +13,18 @@ class PatientDAOIntegrationTest {
 
     private static PatientDAO dao;
     private static Patient testPatient;
+    private static Integer savedId;
 
     @BeforeAll
-    static void setup() {
+    static void init() {
         dao = new PatientDAO();
         TestDatabaseUtil.clearPatientsTable();
     }
 
     @BeforeEach
-    void createTestPatient() {
+    void setup() {
         testPatient = new Patient(
-                "P1001",
+                0, // ID will be set by database
                 "John Doe",
                 45,
                 "Male",
@@ -39,15 +40,21 @@ class PatientDAOIntegrationTest {
     @Order(1)
     void testInsertPatient() {
         boolean result = dao.insertPatient(testPatient);
+        savedId = testPatient.getId();
+        testPatient.setId(savedId);
+
         assertTrue(result);
+        assertNotNull(savedId);
+        assertTrue(savedId > 0);
     }
 
     @Test
     @Order(2)
-    void testFindPatientById() {
-        Patient found = dao.findPatientById("P1001");
+    void testFindById() {
+        Patient found = dao.findPatientById(savedId);
         assertNotNull(found);
         assertEquals("John Doe", found.getName());
+        assertEquals(45, found.getAge());
     }
 
     @Test
@@ -55,34 +62,44 @@ class PatientDAOIntegrationTest {
     void testUpdatePatient() {
         testPatient.setName("John D.");
         testPatient.setAge(46);
-        boolean result = dao.updatePatient(testPatient);
+        boolean result = dao.updatePatientById(savedId, testPatient);
+        System.out.println(testPatient);
         assertTrue(result);
 
-        Patient updated = dao.findPatientById("P1001");
+        Patient updated = dao.findPatientById(savedId);
         assertEquals("John D.", updated.getName());
         assertEquals(46, updated.getAge());
     }
 
     @Test
     @Order(4)
-    void testFindAllPatients() {
-        List<Patient> list = dao.findAllPatients();
-        assertFalse(list.isEmpty());
-        assertTrue(list.stream().anyMatch(p -> p.getId().equals("P1001")));
+    void testFindAll() {
+        List<Patient> patients = dao.findAllPatients();
+        assertFalse(patients.isEmpty());
+        assertTrue(patients.stream().anyMatch(p -> p.getId() == savedId));
     }
 
     @Test
     @Order(5)
-    void testDeletePatientById() {
-        boolean result = dao.deletePatientById("P1001");
-        assertTrue(result);
+    void testDeletePatient() {
+        assertTrue(dao.deletePatientById(savedId));
+        assertNull(dao.findPatientById(savedId));
+    }
 
-        Patient afterDelete = dao.findPatientById("P1001");
-        assertNull(afterDelete);
+    @Test
+    @Order(6)
+    void testDeleteNonExistentPatient() {
+        assertFalse(dao.deletePatientById(-1));
+    }
+
+    @Test
+    @Order(7)
+    void testFindByNonExistentId() {
+        assertNull(dao.findPatientById(-1));
     }
 
     @AfterAll
-    static void tearDown() {
+    static void cleanup() {
         TestDatabaseUtil.clearPatientsTable();
     }
 }

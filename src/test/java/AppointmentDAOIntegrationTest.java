@@ -1,6 +1,9 @@
+
 import com.hospital.dao.AppointmentDAO;
+import com.hospital.dao.DoctorDAO;
 import com.hospital.entities.Appointment;
 import com.hospital.entities.Appointment.Status;
+import com.hospital.entities.Doctor;
 import com.hospital.util.TestDatabaseUtil;
 import org.junit.jupiter.api.*;
 
@@ -13,21 +16,30 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AppointmentDAOIntegrationTest {
 
-    private static AppointmentDAO dao;
+    private static AppointmentDAO appointmentDao;
+    private static DoctorDAO doctorDao;
     private static Appointment testAppointment;
     private static int savedId;
+    private static int testDoctorId;
 
     @BeforeAll
     static void setup() {
-        dao = new AppointmentDAO();
+        appointmentDao = new AppointmentDAO();
+        doctorDao = new DoctorDAO();
         TestDatabaseUtil.clearAppointmentsTable();
+        TestDatabaseUtil.clearDoctorsTable();
+
+        // Create a test doctor first
+        Doctor testDoctor = new Doctor("Dr. Test", "General");
+        doctorDao.insertDoctor(testDoctor);
+        testDoctorId = testDoctor.getId();
     }
 
     @BeforeEach
     void createAppointment() {
         testAppointment = new Appointment(
                 1, // patientId
-                2, // doctorId
+                testDoctorId, // using the actual doctor ID
                 LocalDateTime.now().plusDays(1),
                 Duration.ofMinutes(30)
         );
@@ -36,7 +48,7 @@ class AppointmentDAOIntegrationTest {
     @Test
     @Order(1)
     void testInsert() {
-        boolean result = dao.insert(testAppointment);
+        boolean result = appointmentDao.insert(testAppointment);
         savedId = testAppointment.getId();
         assertTrue(result);
         assertTrue(savedId > 0);
@@ -45,31 +57,33 @@ class AppointmentDAOIntegrationTest {
     @Test
     @Order(2)
     void testFindById() {
-        Appointment appt = dao.findById(savedId);
+        Appointment appt = appointmentDao.findById(savedId);
         assertNotNull(appt);
         assertEquals(testAppointment.getPatientId(), appt.getPatientId());
+        assertEquals(testDoctorId, appt.getDoctorId());
     }
 
     @Test
     @Order(3)
     void testFindByPatientId() {
-        List<Appointment> list = dao.findByPatientId(testAppointment.getPatientId());
+        List<Appointment> list = appointmentDao.findByPatientId(testAppointment.getPatientId());
         assertFalse(list.isEmpty());
         assertEquals(testAppointment.getPatientId(), list.get(0).getPatientId());
+        assertEquals(testDoctorId, list.get(0).getDoctorId());
     }
 
     @Test
     @Order(4)
     void testUpdateStatus() {
-        boolean result = dao.updateStatus(savedId, Status.COMPLETED);
+        boolean result = appointmentDao.updateStatus(savedId, Status.COMPLETED);
         assertTrue(result);
-        assertEquals(Status.COMPLETED, dao.findById(savedId).getStatus());
+        assertEquals(Status.COMPLETED, appointmentDao.findById(savedId).getStatus());
     }
 
     @Test
     @Order(5)
     void testFindAll() {
-        List<Appointment> all = dao.findAll();
+        List<Appointment> all = appointmentDao.findAll();
         assertFalse(all.isEmpty());
         assertTrue(all.stream().anyMatch(a -> a.getId() == savedId));
     }
@@ -77,11 +91,12 @@ class AppointmentDAOIntegrationTest {
     @Test
     @Order(6)
     void testUpdateStatusInvalidId() {
-        assertFalse(dao.updateStatus(-1, Status.CANCELLED));
+        assertFalse(appointmentDao.updateStatus(-1, Status.CANCELLED));
     }
 
     @AfterAll
     static void teardown() {
         TestDatabaseUtil.clearAppointmentsTable();
+        TestDatabaseUtil.clearDoctorsTable();
     }
 }
