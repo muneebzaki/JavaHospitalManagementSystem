@@ -79,12 +79,25 @@ public class MedicalRecordFrame extends JFrame {
                 boolean success = recordManager.addRecord(record);
                 if (success) {
                     JOptionPane.showMessageDialog(this, "Record added.");
+                    loadRecordsByPatientId(patientId); // ✅ Reloads records for that patient
                 } else {
                     JOptionPane.showMessageDialog(this, "Failed to add record.");
                 }
+
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Invalid input.");
             }
         }
     }
+    private void loadRecordsByPatientId(int patientId) {
+        List<MedicalRecord> records = recordManager.getRecordsByPatientId(patientId);
+        tableModel.setRowCount(0);
+        for (MedicalRecord r : records) {
+            tableModel.addRow(new Object[]{
+                    r.getRecordId(), r.getPatientId(), r.getDoctorId(),
+                    r.getDate(), r.getDiagnosis(), r.getTreatment()
+            });
+        }
+    }
+
 }
