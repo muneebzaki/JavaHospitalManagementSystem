@@ -36,7 +36,7 @@ public class AppointmentDAO {
     }
 
     public Appointment findById(int id) {
-        String sql = "SELECT * FROM appointments WHERE appointment_id = ?";
+        String sql = "SELECT * FROM appointments WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -76,7 +76,7 @@ public class AppointmentDAO {
     }
 
     public boolean updateStatus(int id, Status status) {
-        String sql = "UPDATE appointments SET status = ? WHERE appointment_id = ?";
+        String sql = "UPDATE appointments SET status = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, status.name());
@@ -90,7 +90,7 @@ public class AppointmentDAO {
 
     private Appointment extract(ResultSet rs) throws SQLException {
         return new Appointment(
-                rs.getInt("appointment_id"),
+                rs.getInt("id"),
                 rs.getInt("patient_id"),
                 rs.getInt("doctor_id"),
                 rs.getTimestamp("appointment_datetime").toLocalDateTime(),
